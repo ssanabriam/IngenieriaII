@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Inventario</title>
+    <style>
+    
+        .inventory-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .inventory-form input,
+        .inventory-form select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .scanner-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+
+        .scanner-section video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 5px;
+        }
+
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .inventory-table th,
+        .inventory-table td {
+            padding: 10px;
+            border: 1px solid #eee;
+            text-align: left;
+        }
+
+        .inventory-table th {
+            background: #2c5a2e;
+            color: white;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-low {
+            background: #c0392b;
+        }
+
+        .status-medium {
+            background: #e67e22;
+        }
+
+        .status-good {
+            background: #2c5a2e;
+        }
+
+        .expired {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .expiring-soon {
+            color: #e67e22;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Tabs de administración -->
+        
+
+        <!-- Contenido de Inventario -->
+        <div id="admin-inventory" class="admin-content active">
+            <h2>Gestión de Inventario</h2>
+            
+            <!-- Formulario de inventario -->
+            <form class="inventory-form" id="inventory-form">
+                <input type="hidden" id="inventory-id">
+                
+                <div>
+                    <label>Nombre del Producto:</label>
+                    <input type="text" id="product-name" required>
+                </div>
+                
+                <div>
+                    <label>Código de Barras:</label>
+                    <input type="text" id="barcode">
+                </div>
+                
+                <div>
+                    <label>Cantidad:</label>
+                    <input type="number" id="quantity" required>
+                </div>
+                
+                <div>
+                    <label>Unidad de Medida:</label>
+                    <select id="unit" required>
+                        <option value="kg">Kilogramos</option>
+                        <option value="g">Gramos</option>
+                        <option value="l">Litros</option>
+                        <option value="ml">Mililitros</option>
+                        <option value="unidades">Unidades</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label>Fecha de Vencimiento:</label>
+                    <input type="date" id="expiration-date">
+                </div>
+                
+                <div>
+                    <label>Proveedor:</label>
+                    <input type="text" id="supplier" required>
+                </div>
+                
+                <div>
+                    <label>Stock Mínimo:</label>
+                    <input type="number" id="min-stock" required>
+                </div>
+
+                <button type="submit" class="btn btn-add">Guardar Producto</button>
+            </form>
+
+            <!-- Sección de escaneo (simulación) -->
+            <div class="scanner-section">
+                <h3>Escáner de Códigos de Barras</h3>
+                <video id="scanner-video"></video>
+                <button class="btn btn-add" onclick="simulateScan()">Simular Escaneo</button>
+            </div>
+
+            <!-- Listado de inventario -->
+            <div class="menu-preview">
+                <h3>Inventario Actual</h3>
+                <table class="inventory-table" id="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Vencimiento</th>
+                            <th>Proveedor</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-list"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos iniciales de inventario
+        let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
+
+        // Funciones de inventario
+        document.getElementById('inventory-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const product = {
+                id: document.getElementById('inventory-id').value || Date.now(),
+                name: document.getElementById('product-name').value,
+                barcode: document.getElementById('barcode').value,
+                quantity: parseFloat(document.getElementById('quantity').value),
+                unit: document.getElementById('unit').value,
+                expiration: document.getElementById('expiration-date').value,
+                supplier: document.getElementById('supplier').value,
+                minStock: parseFloat(document.getElementById('min-stock').value),
+                lastUpdate: new Date().toISOString()
+            };
+
+            const existingIndex = inventory.findIndex(p => p.id == product.id);
+            if (existingIndex > -1) {
+                inventory[existingIndex] = product;
+            } else {
+                inventory.push(product);
+            }
+
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+            renderInventory();
+            this.reset();
+        });
+
+        function renderInventory() {
+            const tbody = document.getElementById('inventory-list');
+            tbody.innerHTML = inventory.map(product => {
+                const status = getStockStatus(product);
+                const expirationStatus = getExpirationStatus(product.expiration);
+                
+                return `
+                    <tr class="${expirationStatus.class}">
+                        <td>${product.name}</td>
+                        <td>${product.quantity} ${product.unit}</td>
+                        <td>${product.expiration || 'N/A'}</td>
+                        <td>${product.supplier}</td>
+                        <td>
+                            <span class="status-indicator ${status.class}"></span>
+                            ${status.text}
+                        </td>
+                        <td>
+                            <button class="btn btn-edit" onclick="editInventoryItem('${product.id}')">Editar</button>
+                            <button class="btn btn-delete" onclick="deleteInventoryItem('${product.id}')">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getStockStatus(product) {
+            const percentage = (product.quantity / product.minStock) * 100;
+            if (percentage <= 25) return { class: 'status-low', text: 'Bajo' };
+            if (percentage <= 50) return { class: 'status-medium', text: 'Medio' };
+            return { class: 'status-good', text: 'Bueno' };
+        }
+
+        function getExpirationStatus(date) {
+            if (!date) return { class: '', text: '' };
+            
+            const expiration = new Date(date);
+            const today = new Date();
+            const diffTime = expiration - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return { class: 'expired', text: 'Vencido' };
+            if (diffDays <= 7) return { class: 'expiring-soon', text: 'Por vencer' };
+            return { class: '', text: '' };
+        }
+
+        function editInventoryItem(id) {
+            const product = inventory.find(p => p.id == id);
+            document.getElementById('inventory-id').value = product.id;
+            document.getElementById('product-name').value = product.name;
+            document.getElementById('barcode').value = product.barcode;
+            document.getElementById('quantity').value = product.quantity;
+            document.getElementById('unit').value = product.unit;
+            document.getElementById('expiration-date').value = product.expiration;
+            document.getElementById('supplier').value = product.supplier;
+            document.getElementById('min-stock').value = product.minStock;
+        }
+
+        function deleteInventoryItem(id) {
+            inventory = inventory.filter(p => p.id != id);
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+            renderInventory();
+        }
+
+        function simulateScan() {
+            const barcodes = ['123456789', '987654321', '456789123'];
+            const randomBarcode = barcodes[Math.floor(Math.random() * barcodes.length)];
+            document.getElementById('barcode').value = randomBarcode;
+            alert(`Código escaneado: ${randomBarcode}`);
+        }
+
+        // Inicialización
+        renderInventory();
+    </script>
+</body>
+</html>

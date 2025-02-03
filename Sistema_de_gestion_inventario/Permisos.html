@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Roles</title>
+    <style>
+       
+        .roles-section {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .roles-list {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .roles-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .roles-list li {
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .roles-list li:hover {
+            background: #f5e6d3;
+        }
+
+        .roles-list li.active {
+            background: #2c5a2e;
+            color: white;
+        }
+
+        .role-details {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .permission-card {
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+
+        .permission-card h4 {
+            margin: 0 0 10px 0;
+            color: #2c5a2e;
+        }
+
+        .permission-card label {
+            display: block;
+            margin: 5px 0;
+        }
+
+        .employee-assignment {
+            margin-top: 30px;
+        }
+
+        .employee-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .employee-card {
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .employee-card img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .employee-card select {
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+
+        <!-- Contenido de Gestión de Roles -->
+        <div id="admin-roles" class="admin-content active">
+            <h2>Gestión de Roles y Permisos</h2>
+            
+            <div class="roles-section">
+                <!-- Listado de Roles -->
+                <div class="roles-list">
+                    <h3>Roles del Sistema</h3>
+                    <ul id="roles-list">
+                        <!-- Los roles se generan dinámicamente -->
+                    </ul>
+                    <button class="btn btn-add" onclick="addNewRole()">Nuevo Rol</button>
+                </div>
+
+                <!-- Detalles del Rol -->
+                <div class="role-details">
+                    <h3 id="role-title">Seleccione un Rol</h3>
+                    
+                    <!-- Permisos -->
+                    <div class="permissions-section">
+                        <h4>Permisos</h4>
+                        <div class="permissions-grid" id="permissions-grid">
+                            <!-- Los permisos se generan dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Asignación de Empleados -->
+                    <div class="employee-assignment">
+                        <h4>Asignación de Empleados</h4>
+                        <div class="employee-list" id="employee-list">
+                            <!-- Los empleados se generan dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos iniciales
+        let roles = JSON.parse(localStorage.getItem('roles')) || [
+            {
+                id: 1,
+                name: 'Gerente',
+                permissions: {
+                    menu: true,
+                    categories: true,
+                    inventory: true,
+                    kitchen: true,
+                    client: true,
+                    roles: true
+                },
+                employees: []
+            },
+            {
+                id: 2,
+                name: 'Cocinero',
+                permissions: {
+                    menu: false,
+                    categories: false,
+                    inventory: true,
+                    kitchen: true,
+                    client: false,
+                    roles: false
+                },
+                employees: []
+            }
+        ];
+
+        let employees = JSON.parse(localStorage.getItem('employees')) || [
+            {
+                id: 1,
+                name: 'Carlos Gómez',
+                position: 'Gerente',
+                photo: 'empleados/gerente.jpg'
+            },
+            {
+                id: 2,
+                name: 'María López',
+                position: 'Cocinera',
+                photo: 'empleados/cocinera.jpg'
+            }
+        ];
+
+        let selectedRole = null;
+
+        // Funciones de gestión de roles
+        function renderRoles() {
+            const list = document.getElementById('roles-list');
+            list.innerHTML = roles.map(role => `
+                <li onclick="selectRole(${role.id})" class="${selectedRole?.id === role.id ? 'active' : ''}">
+                    ${role.name}
+                </li>
+            `).join('');
+        }
+
+        function selectRole(roleId) {
+            selectedRole = roles.find(r => r.id === roleId);
+            renderRoleDetails();
+            renderRoles();
+        }
+
+        function renderRoleDetails() {
+            if (!selectedRole) return;
+
+            document.getElementById('role-title').textContent = selectedRole.name;
+            renderPermissions();
+            renderEmployeeAssignment();
+        }
+
+        function renderPermissions() {
+            const permissions = [
+                { id: 'menu', label: 'Gestión de Menú' },
+                { id: 'categories', label: 'Gestión de Categorías' },
+                { id: 'inventory', label: 'Gestión de Inventario' },
+                { id: 'kitchen', label: 'Acceso a Cocina' },
+                { id: 'client', label: 'Gestión de Clientes' },
+                { id: 'roles', label: 'Gestión de Roles' }
+            ];
+
+            const grid = document.getElementById('permissions-grid');
+            grid.innerHTML = permissions.map(perm => `
+                <div class="permission-card">
+                    <h4>${perm.label}</h4>
+                    <label>
+                        <input type="checkbox" 
+                            id="perm-${perm.id}" 
+                            ${selectedRole.permissions[perm.id] ? 'checked' : ''}
+                            onchange="updatePermission('${perm.id}')">
+                        Habilitado
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        function updatePermission(permissionId) {
+            selectedRole.permissions[permissionId] = document.getElementById(`perm-${permissionId}`).checked;
+            saveRoles();
+        }
+
+        function renderEmployeeAssignment() {
+            const list = document.getElementById('employee-list');
+            list.innerHTML = employees.map(employee => {
+                const currentRole = roles.find(r => r.employees.includes(employee.id));
+                
+                return `
+                    <div class="employee-card">
+                        <img src="${employee.photo}" alt="${employee.name}">
+                        <div>
+                            <strong>${employee.name}</strong>
+                            <small>${employee.position}</small>
+                        </div>
+                        <select onchange="assignEmployee(${employee.id}, this.value)">
+                            <option value="">Sin asignar</option>
+                            ${roles.map(r => `
+                                <option value="${r.id}" ${currentRole?.id === r.id ? 'selected' : ''}>
+                                    ${r.name}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function assignEmployee(employeeId, roleId) {
+            // Remover empleado de todos los roles
+            roles.forEach(role => {
+                role.employees = role.employees.filter(id => id !== employeeId);
+            });
+
+            // Asignar al nuevo rol si se seleccionó uno
+            if (roleId) {
+                const role = roles.find(r => r.id === Number(roleId));
+                role.employees.push(employeeId);
+            }
+
+            saveRoles();
+        }
+
+        function addNewRole() {
+            const roleName = prompt('Ingrese el nombre del nuevo rol:');
+            if (roleName) {
+                const newRole = {
+                    id: Date.now(),
+                    name: roleName,
+                    permissions: {
+                        menu: false,
+                        categories: false,
+                        inventory: false,
+                        kitchen: false,
+                        client: false,
+                        roles: false
+                    },
+                    employees: []
+                };
+
+                roles.push(newRole);
+                saveRoles();
+                selectRole(newRole.id);
+            }
+        }
+
+        function saveRoles() {
+            localStorage.setItem('roles', JSON.stringify(roles));
+            renderRoles();
+            renderRoleDetails();
+        }
+
+        // Inicialización
+        renderRoles();
+        if (roles.length > 0) {
+            selectRole(roles[0].id);
+        }
+    </script>
+</body>
+</html>

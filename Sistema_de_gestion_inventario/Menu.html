@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion del menu</title>
+    <style>
+        
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #2c5a2e;
+        }
+
+        .admin-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #f5e6d3;
+            border: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+
+        .admin-tab.active {
+            background: #2c5a2e;
+            color: white;
+        }
+
+        .admin-content {
+            display: none;
+            padding: 20px;
+            background: white;
+            border-radius: 0 5px 5px 5px;
+        }
+
+        .admin-content.active {
+            display: block;
+        }
+
+        .admin-form {
+            display: grid;
+            gap: 15px;
+            max-width: 600px;
+            margin: 20px 0;
+        }
+
+        .admin-form input,
+        .admin-form select,
+        .admin-form textarea {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .ingredient-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ingredient-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .menu-preview {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 10px;
+            border: 1px solid #eee;
+            text-align: left;
+        }
+
+        .admin-table th {
+            background: #2c5a2e;
+            color: white;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .btn-edit {
+            background: #e67e22;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #c0392b;
+            color: white;
+        }
+
+        .btn-add {
+            background: #2c5a2e;
+            color: white;
+            padding: 8px 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        
+
+        <!-- Contenido de Administración -->
+        <div id="admin-menu" class="admin-content active">
+            <h2>Gestión del Menú</h2>
+            
+            <!-- Formulario para agregar/editar platos -->
+            <form class="admin-form" id="menu-form">
+                <input type="hidden" id="item-id">
+                
+                <div>
+                    <label>Nombre del Plato:</label>
+                    <input type="text" id="item-name" required>
+                </div>
+                
+                <div>
+                    <label>Descripción:</label>
+                    <textarea id="item-description" rows="3"></textarea>
+                </div>
+                
+                <div>
+                    <label>Precio:</label>
+                    <input type="number" id="item-price" required>
+                </div>
+                
+                <div>
+                    <label>Categoría:</label>
+                    <select id="item-category" required></select>
+                </div>
+                
+                <div class="ingredient-list">
+                    <label>Ingredientes:</label>
+                    <div id="ingredients-container">
+                        <div class="ingredient-item">
+                            <input type="text" class="ingredient-name">
+                            <input type="text" class="ingredient-quantity">
+                            <button type="button" class="btn btn-delete" onclick="removeIngredient(this)">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-add" onclick="addIngredient()">Agregar Ingrediente</button>
+                </div>
+
+                <div>
+                    <label>Extras/Opciones:</label>
+                    <div id="extras-container">
+                        <div class="ingredient-item">
+                            <input type="text" class="extra-name" placeholder="Nombre extra">
+                            <input type="number" class="extra-price" placeholder="Precio adicional">
+                            <button type="button" class="btn btn-delete" onclick="removeExtra(this)">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-add" onclick="addExtra()">Agregar Extra</button>
+                </div>
+
+                <button type="submit" class="btn btn-add">Guardar Plato</button>
+            </form>
+
+            <!-- Listado de platos existentes -->
+            <div class="menu-preview">
+                <h3>Platos Registrados</h3>
+                <table class="admin-table" id="menu-items-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="menu-items-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Gestión de Categorías -->
+        <div id="admin-categories" class="admin-content">
+            <h2>Gestión de Categorías</h2>
+            
+            <form class="admin-form" id="category-form">
+                <input type="hidden" id="category-id">
+                
+                <div>
+                    <label>Nombre de Categoría:</label>
+                    <input type="text" id="category-name" required>
+                </div>
+                
+                <button type="submit" class="btn btn-add">Guardar Categoría</button>
+            </form>
+
+            <div class="menu-preview">
+                <h3>Categorías Existentes</h3>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categories-list"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos iniciales
+        let menuItems = JSON.parse(localStorage.getItem('menuItems')) || [];
+        let categories = JSON.parse(localStorage.getItem('categories')) || [
+            { id: 1, name: 'Platos Fuertes' },
+            { id: 2, name: 'Bebidas' },
+            { id: 3, name: 'Postres' }
+        ];
+
+        // Funciones de administración
+        function showAdminTab(tabName) {
+            document.querySelectorAll('.admin-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.admin-tab').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`admin-${tabName}`).classList.add('active');
+            document.querySelector(`button[onclick="showAdminTab('${tabName}')"]`).classList.add('active');
+        }
+
+        function addIngredient() {
+            const container = document.getElementById('ingredients-container');
+            const div = document.createElement('div');
+            div.className = 'ingredient-item';
+            div.innerHTML = `
+                <input type="text" class="ingredient-name">
+                <input type="text" class="ingredient-quantity">
+                <button type="button" class="btn btn-delete" onclick="removeIngredient(this)">×</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeIngredient(btn) {
+            btn.closest('.ingredient-item').remove();
+        }
+
+        function addExtra() {
+            const container = document.getElementById('extras-container');
+            const div = document.createElement('div');
+            div.className = 'ingredient-item';
+            div.innerHTML = `
+                <input type="text" class="extra-name" placeholder="Nombre extra">
+                <input type="number" class="extra-price" placeholder="Precio adicional">
+                <button type="button" class="btn btn-delete" onclick="removeExtra(this)">×</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeExtra(btn) {
+            btn.closest('.ingredient-item').remove();
+        }
+
+        // Gestión de categorías
+        document.getElementById('category-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const category = {
+                id: document.getElementById('category-id').value || Date.now(),
+                name: document.getElementById('category-name').value
+            };
+
+            const existingIndex = categories.findIndex(c => c.id == category.id);
+            if (existingIndex > -1) {
+                categories[existingIndex] = category;
+            } else {
+                categories.push(category);
+            }
+
+            localStorage.setItem('categories', JSON.stringify(categories));
+            renderCategories();
+            this.reset();
+        });
+
+        function renderCategories() {
+            const tbody = document.getElementById('categories-list');
+            tbody.innerHTML = categories.map(category => `
+                <tr>
+                    <td>${category.name}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editCategory(${category.id})">Editar</button>
+                        <button class="btn btn-delete" onclick="deleteCategory(${category.id})">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Actualizar select de categorías en el formulario de platos
+            const select = document.getElementById('item-category');
+            select.innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`);
+        }
+
+        function editCategory(id) {
+            const category = categories.find(c => c.id === id);
+            document.getElementById('category-id').value = category.id;
+            document.getElementById('category-name').value = category.name;
+        }
+
+        function deleteCategory(id) {
+            categories = categories.filter(c => c.id !== id);
+            localStorage.setItem('categories', JSON.stringify(categories));
+            renderCategories();
+        }
+
+        // Gestión de menú
+        document.getElementById('menu-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const item = {
+                id: document.getElementById('item-id').value || Date.now(),
+                name: document.getElementById('item-name').value,
+                description: document.getElementById('item-description').value,
+                price: parseFloat(document.getElementById('item-price').value),
+                category: document.getElementById('item-category').value,
+                ingredients: Array.from(document.getElementsByClassName('ingredient-name')).map((name, index) => ({
+                    name: name.value,
+                    quantity: document.getElementsByClassName('ingredient-quantity')[index].value
+                })),
+                extras: Array.from(document.getElementsByClassName('extra-name')).map((name, index) => ({
+                    name: name.value,
+                    price: parseFloat(document.getElementsByClassName('extra-price')[index].value)
+                }))
+            };
+
+            const existingIndex = menuItems.findIndex(i => i.id == item.id);
+            if (existingIndex > -1) {
+                menuItems[existingIndex] = item;
+            } else {
+                menuItems.push(item);
+            }
+
+            localStorage.setItem('menuItems', JSON.stringify(menuItems));
+            renderMenuItems();
+            this.reset();
+            document.getElementById('ingredients-container').innerHTML = '<div class="ingredient-item"><input type="text" class="ingredient-name"><input type="text" class="ingredient-quantity"><button type="button" class="btn btn-delete" onclick="removeIngredient(this)">×</button></div>';
+            document.getElementById('extras-container').innerHTML = '<div class="ingredient-item"><input type="text" class="extra-name" placeholder="Nombre extra"><input type="number" class="extra-price" placeholder="Precio adicional"><button type="button" class="btn btn-delete" onclick="removeExtra(this)">×</button></div>';
+        });
+
+        function renderMenuItems() {
+            const tbody = document.getElementById('menu-items-list');
+            tbody.innerHTML = menuItems.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${categories.find(c => c.id == item.category)?.name || ''}</td>
+                    <td>$${item.price.toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editMenuItem('${item.id}')">Editar</button>
+                        <button class="btn btn-delete" onclick="deleteMenuItem('${item.id}')">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function editMenuItem(id) {
+            const item = menuItems.find(i => i.id == id);
+            document.getElementById('item-id').value = item.id;
+            document.getElementById('item-name').value = item.name;
+            document.getElementById('item-description').value = item.description;
+            document.getElementById('item-price').value = item.price;
+            document.getElementById('item-category').value = item.category;
+
+            // Ingredientes
+            const ingredientsContainer = document.getElementById('ingredients-container');
+            ingredientsContainer.innerHTML = item.ingredients.map(ing => `
+                <div class="ingredient-item">
+                    <input type="text" class="ingredient-name" value="${ing.name}">
+                    <input type="text" class="ingredient-quantity" value="${ing.quantity}">
+                    <button type="button" class="btn btn-delete" onclick="removeIngredient(this)">×</button>
+                </div>
+            `).join('');
+
+            // Extras
+            const extrasContainer = document.getElementById('extras-container');
+            extrasContainer.innerHTML = item.extras.map(extra => `
+                <div class="ingredient-item">
+                    <input type="text" class="extra-name" value="${extra.name}">
+                    <input type="number" class="extra-price" value="${extra.price}">
+                    <button type="button" class="btn btn-delete" onclick="removeExtra(this)">×</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteMenuItem(id) {
+            menuItems = menuItems.filter(i => i.id != id);
+            localStorage.setItem('menuItems', JSON.stringify(menuItems));
+            renderMenuItems();
+        }
+
+        // Inicialización
+        renderCategories();
+        renderMenuItems();
+    </script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú en Línea </title>
+    <style>
+      
+        .menu-online {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .dish-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .dish-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .dish-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .dish-content {
+            padding: 15px;
+        }
+
+        .dish-title {
+            margin: 0;
+            color: #2c5a2e;
+        }
+
+        .dish-price {
+            color: #e67e22;
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+
+        .dish-ingredients {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .dish-category {
+            display: inline-block;
+            background: #f5e6d3;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-bottom: 10px;
+        }
+
+        .menu-filters {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            background: white;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: #2c5a2e;
+            color: white;
+            border-color: #2c5a2e;
+        }
+
+        .search-bar {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Tabs de administración -->
+        <div class="admin-tabs">
+            <!-- Tabs anteriores... -->
+            <button class="admin-tab active" onclick="showAdminTab('online-menu')">Menú en Línea</button>
+        </div>
+
+        <!-- Contenido de Menú en Línea -->
+        <div id="admin-online-menu" class="admin-content active">
+            <h2>Nuestro Menú</h2>
+            
+            <!-- Filtros y búsqueda -->
+            <div class="menu-filters">
+                <input type="text" class="search-bar" placeholder="Buscar plato..." oninput="filterMenu()">
+                <button class="filter-btn active" data-category="all" onclick="filterByCategory('all')">Todos</button>
+                <button class="filter-btn" data-category="entradas" onclick="filterByCategory('entradas')">Entradas</button>
+                <button class="filter-btn" data-category="platos-fuertes" onclick="filterByCategory('platos-fuertes')">Platos Fuertes</button>
+                <button class="filter-btn" data-category="postres" onclick="filterByCategory('postres')">Postres</button>
+                <button class="filter-btn" data-category="bebidas" onclick="filterByCategory('bebidas')">Bebidas</button>
+            </div>
+
+            <!-- Listado de platos -->
+            <div class="menu-online" id="menu-online">
+                <!-- Los platos se generan dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos del menú
+        const menuItems = [
+            {
+                id: 1,
+                name: 'Bandeja Paisa',
+                category: 'platos-fuertes',
+                price: 25000,
+                image: 'img/bandeja_paisa.jpg',
+                ingredients: ['Arroz', 'Frijoles', 'Chicharrón', 'Carne molida', 'Arepa', 'Huevo', 'Aguacate'],
+                description: 'El plato típico antioqueño por excelencia'
+            },
+            {
+                id: 2,
+                name: 'Ajiaco Santafereño',
+                category: 'platos-fuertes',
+                price: 18000,
+                image: 'img/ajiaco.jpg',
+                ingredients: ['Pollo', 'Tres tipos de papa', 'Maíz', 'Crema de leche', 'Alcaparras'],
+                description: 'Sopa tradicional bogotana'
+            },
+            {
+                id: 3,
+                name: 'Sancocho Trifasico',
+                category: 'platos-fuertes',
+                price: 28000,
+                image: 'img/sancocho.jpg',
+                ingredients: ['Res', 'Cerdo', 'Pollo', 'Arepa', 'Aguacate'],
+                description: 'El plato típico colombiano'
+            },
+            {
+                id: 4,
+                name: 'Postre de Natas',
+                category: 'postres',
+                price: 5000,
+                image: 'img/postre.jpg',
+                ingredients: ['Leche', 'Azúcar', 'Canela'],
+                description: 'Postre tradicional colombiano'
+            },
+
+            {
+                id: 5,
+                name: 'Arequipe',
+                category: 'postres',
+                price: 4500,
+                image: 'img/arequipe.jpg',
+                ingredients: ['Leche', 'Azúcar', 'Canela'],
+                description: 'Dulce de leche colombiano'
+            },
+            {
+                id: 6,
+                name: 'Tres Leches',
+                category: 'postres',
+                price: 4500,
+                image: 'img/tres_leches.jpg',
+                ingredients: ['Leche', 'Azúcar', 'vainilla','Crema de Leche','Leche con densada'],
+                description: 'Bizcocho bañado en mezcla de tres leches'
+            },
+
+            {
+                id: 7,
+                name: 'Jugo de Lulo',
+                category: 'bebidas',
+                price: 6000,
+                image: 'img/lulo.jpg',
+                ingredients: ['Lulo', 'Azúcar', 'Agua'],
+                description: 'Jugo natural de lulo colombiano'
+            },
+            {
+                id: 8,
+                name: 'Cafe',
+                category: 'bebidas',
+                price: 4000,
+                image: 'img/cafe.jpg',
+                ingredients: ['cafe', 'Azúcar', 'Agua'],
+                description: 'Cafe colombiano'
+            },
+            {
+                id: 9,
+                name: 'Chica',
+                category: 'bebidas',
+                price: 5500,
+                image: 'img/chicha.jpg',
+                ingredients: ['Maiz', 'Azúcar', 'Agua'],
+                description: 'Bebida tradicional de maíz fermentado'
+            },
+           
+        ];
+
+        // Funciones para mostrar el menú
+        function renderMenu(items = menuItems) {
+            const container = document.getElementById('menu-online');
+            container.innerHTML = items.map(item => `
+                <div class="dish-card" data-category="${item.category}">
+                    <img src="${item.image}" alt="${item.name}" class="dish-image">
+                    <div class="dish-content">
+                        <span class="dish-category">${getCategoryName(item.category)}</span>
+                        <h3 class="dish-title">${item.name}</h3>
+                        <div class="dish-price">$${item.price.toLocaleString()}</div>
+                        <p class="dish-ingredients">${item.ingredients.join(', ')}</p>
+                        <p>${item.description}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getCategoryName(category) {
+            const categories = {
+                'entradas': 'Entradas',
+                'platos-fuertes': 'Platos Fuertes',
+                'postres': 'Postres',
+                'bebidas': 'Bebidas'
+            };
+            return categories[category] || 'Otros';
+        }
+
+        // Funciones de filtrado
+        function filterByCategory(category) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`button[data-category="${category}"]`).classList.add('active');
+            
+            const dishes = document.querySelectorAll('.dish-card');
+            dishes.forEach(dish => {
+                if (category === 'all' || dish.dataset.category === category) {
+                    dish.style.display = 'block';
+                } else {
+                    dish.style.display = 'none';
+                }
+            });
+        }
+
+        function filterMenu() {
+            const searchTerm = document.querySelector('.search-bar').value.toLowerCase();
+            const filteredItems = menuItems.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.ingredients.some(ing => ing.toLowerCase().includes(searchTerm))
+            );
+            renderMenu(filteredItems);
+        }
+
+        // Inicialización
+        renderMenu();
+    </script>
+</body>
+</html>

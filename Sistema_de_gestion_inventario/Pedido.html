@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Pedidos</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5e6d3;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .menu-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            color: #2c5a2e;
+            border-bottom: 2px solid #e67e22;
+            padding-bottom: 10px;
+        }
+
+        .menu-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .menu-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            text-align: center;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-3px);
+            background-color: #fff3e6;
+        }
+
+        .menu-item img {
+            max-width: 100%;
+            height: 150px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .order-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .order-items {
+            margin-top: 20px;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .quantity-controls button {
+            background-color: #e67e22;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        .extras-options {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .extras-options label {
+            display: block;
+            margin: 3px 0;
+        }
+
+        #send-kitchen {
+            background-color: #2c5a2e;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            font-size: 1.1em;
+            transition: background-color 0.3s;
+        }
+
+        #send-kitchen:hover {
+            background-color: #1e401f;
+        }
+
+        .total-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            text-align: right;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2c5a2e;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .menu-items {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-items {
+                grid-template-columns: 1fr;
+            }
+            
+            .order-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .quantity-controls {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="menu-section">
+            <h2 class="primary-color">Menú Típico Colombiano</h2>
+            
+            <!-- Platos Fuertes -->
+            <div class="menu-category">
+                <h3 class="category-title">Platos Fuertes</h3>
+                <div class="menu-items">
+                    <div class="menu-item" data-item="Bandeja Paisa" data-price="25000" data-extras='{"Aguacate":2000, "Hogao":1500}'>
+                        <h4>Bandeja Paisa</h4>
+                        <img src="img/bandeja_paisa.jpg" alt="Bandeja Paisa">
+                        <p class="secondary-color">$25.000</p>
+                        <p>Arroz, frijoles, chicharrón, carne molida, Arepa, Huevo y Aguacate</p>
+                    </div>
+                    
+                    <div class="menu-item" data-item="Ajiaco" data-price="18000" data-extras='{"Crema de Leche":1500, "Alcaparras":1000}'>
+                        <h4>Ajiaco Santafereño</h4>
+                        <img src="img/ajiaco.jpg" alt="Ajiaco">
+                        <p class="secondary-color">$18.000</p>
+                        <p>Sopa de pollo con tres tipos de papa, arroz, aguacate y banano</p>
+                    </div>
+
+                    <div class="menu-item" data-item="Sancocho" data-price="28000" data-extras='{"Aguacate":2000, "Yuca":1500}'>
+                        <h4>Sancocho Trifásico</h4>
+                        <img src="img/sancocho.jpg" alt="Sancocho">
+                        <p class="secondary-color">$28.000</p>
+                        <p>Sopa de tres carnes: Res, Cerdo y Pollo</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bebidas -->
+            <div class="menu-category">
+                <h3 class="category-title">Bebidas</h3>
+                <div class="menu-items">
+                    <div class="menu-item" data-item="Jugo de Lulo" data-price="6000" data-extras='{"Hielo":500, "Limón":500}'>
+                        <h4>Jugo de Lulo</h4>
+                        <img src="img/lulo.jpg" alt="Jugo de Lulo">
+                        <p class="secondary-color">$6.000</p>
+                        <p>Jugo natural de lulo colombiano</p>
+                    </div>
+
+                    <div class="menu-item" data-item="Café Tinto" data-price="4000" data-extras='{"Leche":1000, "Canela":500}'>
+                        <h4>Café Tinto</h4>
+                        <img src="img/cafe.jpg" alt="Café">
+                        <p class="secondary-color">$4.000</p>
+                        <p>Café colombiano </p>
+                    </div>
+
+                    <div class="menu-item" data-item="Chicha" data-price="5500">
+                        <h4>Chicha</h4>
+                        <img src="img/chicha.jpg" alt="Chicha">
+                        <p class="secondary-color">$5.500</p>
+                        <p>Bebida tradicional de maíz fermentado</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Postres -->
+            <div class="menu-category">
+                <h3 class="category-title">Postres</h3>
+                <div class="menu-items">
+                    <div class="menu-item" data-item="Postre de Natas" data-price="5000" data-extras='{"Queso":2000}'>
+                        <h4>Postre de Natas</h4>
+                        <img src="img/postre.jpg" alt="Postre">
+                        <p class="secondary-color">$5.000</p>
+                        <p>Postre tradicional de natas de leche</p>
+                    </div>
+
+                    <div class="menu-item" data-item="Arequipe" data-price="4500">
+                        <h4>Arequipe</h4>
+                        <img src="img/arequipe.jpg" alt="Arequipe">
+                        <p class="secondary-color">$4.500</p>
+                        <p>Dulce de leche colombiano</p>
+                    </div>
+
+                    <div class="menu-item" data-item="Tres Leches" data-price="7500" data-extras='{"Frutos Rojos":2000}'>
+                        <h4>Tres Leches</h4>
+                        <img src="img/tres_leches.jpg" alt="Tres Leches">
+                        <p class="secondary-color">$7.500</p>
+                        <p>Bizcocho bañado en mezcla de tres leches</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Pedido -->
+        <div class="order-section">
+            <h2 class="primary-color">Pedido Actual</h2>
+            <div class="order-items" id="order-items"></div>
+            <div class="total-section">
+                <h3>Total: $<span id="total">0</span></h3>
+            </div>
+            <button id="send-kitchen">Enviar a Cocina</button>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        class OrderSystem {
+            constructor() {
+                this.order = [];
+                this.total = 0;
+                this.loadOrderFromStorage();
+                this.initEventListeners();
+                this.updateUI();
+            }
+
+            initEventListeners() {
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.addEventListener('click', () => this.addToOrder(item));
+                });
+                document.getElementById('send-kitchen').addEventListener('click', () => this.sendOrder());
+            }
+
+            addToOrder(menuItem) {
+                const item = {
+                    name: menuItem.dataset.item,
+                    basePrice: parseInt(menuItem.dataset.price),
+                    extras: {},
+                    quantity: 1,
+                    extrasPrices: JSON.parse(menuItem.dataset.extras || '{}')
+                };
+
+                const existingItem = this.order.find(i => i.name === item.name && 
+                    JSON.stringify(i.extras) === JSON.stringify(item.extras));
+                
+                existingItem ? existingItem.quantity++ : this.order.push(item);
+                
+                this.saveOrderToStorage();
+                this.updateUI();
+                this.showNotification('¡Item agregado al pedido!');
+            }
+
+            updateUI() {
+                const orderItems = document.getElementById('order-items');
+                orderItems.innerHTML = '';
+                this.total = 0;
+
+                this.order.forEach((item, index) => {
+                    const itemTotal = (item.basePrice + Object.values(item.extras).reduce((a, b) => a + b, 0)) * item.quantity;
+                    this.total += itemTotal;
+
+                    const orderItem = document.createElement('div');
+                    orderItem.className = 'order-item';
+                    orderItem.innerHTML = `
+                        <div>
+                            <h4>${item.name}</h4>
+                            ${Object.keys(item.extrasPrices).length > 0 ? `
+                            <div class="extras-options">
+                                ${Object.entries(item.extrasPrices).map(([name, price]) => `
+                                    <label>
+                                        <input type="checkbox" 
+                                            ${item.extras[name] ? 'checked' : ''}
+                                            data-index="${index}"
+                                            data-extra="${name}"
+                                            data-price="${price}">
+                                        ${name} (+$${price})
+                                    </label>
+                                `).join('')}
+                            </div>` : ''}
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="decrement" data-index="${index}">-</button>
+                            <span>${item.quantity}</span>
+                            <button class="increment" data-index="${index}">+</button>
+                        </div>
+                    `;
+
+                    orderItems.appendChild(orderItem);
+                });
+
+                document.getElementById('total').textContent = this.total.toLocaleString();
+                this.addDynamicEventListeners();
+            }
+
+            addDynamicEventListeners() {
+                document.querySelectorAll('.decrement').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.adjustQuantity(e.target.dataset.index, -1));
+                });
+                document.querySelectorAll('.increment').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.adjustQuantity(e.target.dataset.index, 1));
+                });
+                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', (e) => this.toggleExtra(
+                        e.target.dataset.index,
+                        e.target.dataset.extra,
+                        parseInt(e.target.dataset.price)
+                    ));
+                });
+            }
+
+            adjustQuantity(index, amount) {
+                const item = this.order[index];
+                item.quantity = Math.max(1, item.quantity + amount);
+                this.saveOrderToStorage();
+                this.updateUI();
+            }
+
+            toggleExtra(index, extraName, price) {
+                const item = this.order[index];
+                item.extras[extraName] = item.extras[extraName] ? null : price;
+                this.saveOrderToStorage();
+                this.updateUI();
+            }
+
+            sendOrder() {
+                if (!this.order.length) return this.showNotification('¡Pedido vacío!', 'error');
+                
+                // Simular envío a cocina
+                this.showNotification('Pedido enviado a cocina ✔️');
+                localStorage.removeItem('currentOrder');
+                this.order = [];
+                this.updateUI();
+            }
+
+            showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.style.backgroundColor = type === 'error' ? '#c0392b' : '#2c5a2e';
+                notification.textContent = message;
+                notification.style.display = 'block';
+                setTimeout(() => notification.style.display = 'none', 3000);
+            }
+
+            saveOrderToStorage() {
+                localStorage.setItem('currentOrder', JSON.stringify(this.order));
+            }
+
+            loadOrderFromStorage() {
+                const savedOrder = localStorage.getItem('currentOrder');
+                this.order = savedOrder ? JSON.parse(savedOrder) : [];
+            }
+        }
+
+        // Inicializar el sistema
+        new OrderSystem();
+    </script>
+</body>
+</html>
